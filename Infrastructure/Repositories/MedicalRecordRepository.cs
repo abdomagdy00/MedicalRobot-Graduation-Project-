@@ -6,14 +6,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-    public class MedicalRecordRepository : GenericRepository<MedicalRecord>, IMedicalRecordRepository
+    public class MedicalRecordRepository:IMedicalRecordRepository
     {
         private readonly AppDbContext _context;
 
         public MedicalRecordRepository(AppDbContext context)
-            :base(context)
         {
             _context = context;
+        }
+
+        public async Task AddAsyn(MedicalRecord record)
+        {
+            await _context.MedicalRecords.AddAsync(record);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<MedicalRecord>> GetRecentRecordsByPatientIdAsync(int patientId, int count)
@@ -22,6 +27,7 @@ namespace Infrastructure.Repositories
                 .Where(p => p.Id == patientId)
                 .OrderByDescending(r => r.CapturedAt)
                 .Take(count)
+                .AsNoTracking()
                 .ToListAsync();
         }
     }

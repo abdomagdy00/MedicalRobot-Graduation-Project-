@@ -1,11 +1,12 @@
 ﻿using Core.Entities;
+using Core.Enums;
 
 namespace Core.Interfaces
 {
-    public interface IMedicineDrawerRepository : IGenericRepository<MedicineDrawer>
+    public interface IMedicineDrawerRepository 
     {
         Task<MedicineDrawer> GetDrawerByPatientIdAsync(int patientId);
-        Task UpdateDrawerStatusAsync(int drawerId, bool isOpen);
+        Task UpdateDrawerStatusAsync(int drawerId,DrawerStatus status);
         Task<IEnumerable<MedicineDrawer>> GetAllDrawersWithPatientsAsync();
     }
 }

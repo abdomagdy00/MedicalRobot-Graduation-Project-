@@ -1,6 +1,5 @@
-﻿
-
-using Application.DTOs;
+﻿using Application.DTOs;
+using Core.Enums;
 
 namespace Application.Interfaces
 {
@@ -8,10 +7,9 @@ namespace Application.Interfaces
     {
         Task<string> OpenDrawerByFaceIdAsync(int faceId);
 
-        // التحكم اليدوي من الموبايل
-        Task<bool> ToggleDrawerAsync(int drawerId, bool open);
-
-        // الحصول على حالة الأدراج كلها (عشان لو الأدمن عاوز يشوف إيه المفتوح)
+        // Manual control from mobile
+        Task<bool> ToggleDrawerAsync(int drawerId, DrawerStatus status);
+        // Get the status of all drawers 
         Task<IEnumerable<MedicineDrawerDto>> GetAllDrawersStatusAsync();
     }
 }

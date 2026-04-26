@@ -1,16 +1,12 @@
-
+using Api.Middlewares;
 using Application.Interfaces;
-using Application.Mappings;
 using Application.Services;
 using Application.Validators;
-using Core.Exceptions;
 using Core.Interfaces;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Api
 {
@@ -20,84 +16,55 @@ namespace Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
+            // 1. Basics
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            // Infrastructure
-            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            // 2. Database
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(connectionString));
+
+            // 3. Infrastructure
             builder.Services.AddScoped<IPatientRepository, PatientRepository>();
             builder.Services.AddScoped<IMedicineDrawerRepository, MedicineDrawerRepository>();
             builder.Services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
 
-
-
-            // Application
-            builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
+            // 4. Application 
             builder.Services.AddValidatorsFromAssembly(typeof(PatientDtoValidator).Assembly);
             builder.Services.AddSignalR();
 
+            builder.Services.AddScoped<IPatientService, PatientService>();
             builder.Services.AddScoped<IMedicineDrawerService, MedicineDrawerService>();
             builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
-            builder.Services.AddScoped<IPatientService, PatientService>();
 
+            // 5.  CORS Policy
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll",
-                    builder => builder.AllowAnyOrigin()
-                                      .AllowAnyMethod()
-                                      .AllowAnyHeader());
-            });
-
-            //API
-            builder.Services.AddScoped<IPatientService, PatientService>();
-
-
-
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-            builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(connectionString));
-            var app = builder.Build();
-
-            app.UseCors("AllowAll");
-
-            //Global Exception Handling
-            app.UseExceptionHandler(opt =>
-            {
-                opt.Run(async context =>
+                options.AddPolicy("RobotPolicy", policy =>
                 {
-                    var exceptionDetails = context.Features.Get<IExceptionHandlerFeature>();
-                    var exception = exceptionDetails?.Error;
-
-                    if (exception is NotFoundException)
-                    {
-                        context.Response.StatusCode = StatusCodes.Status404NotFound;
-                        await context.Response.WriteAsJsonAsync(new { error = exception.Message });
-                    }
-                    else
-                    {
-                        // For unexpected errors
-                        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                        await context.Response.WriteAsJsonAsync(new { error = "An unexpected server error occurred." });
-                    }
+                    policy.AllowAnyOrigin()
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
                 });
             });
 
-            // Configure the HTTP request pipeline.
+            var app = builder.Build();
+
+            app.UseMiddleware<ExceptionMiddleware>();
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            app.UseCors("RobotPolicy");
+
+            // app.UseHttpsRedirection(); 
 
             app.UseAuthorization();
-
-
             app.MapControllers();
 
             app.Run();

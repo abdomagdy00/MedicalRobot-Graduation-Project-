@@ -1,17 +1,18 @@
 ﻿
 
 using Core.Entities;
+using Core.Enums;
 using Core.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-    public class MedicineDrawerRepository : GenericRepository<MedicineDrawer>, IMedicineDrawerRepository
+    public class MedicineDrawerRepository: IMedicineDrawerRepository
     {
         private readonly AppDbContext _context;
 
-        public MedicineDrawerRepository(AppDbContext context) :base(context) 
+        public MedicineDrawerRepository(AppDbContext context) 
         { 
             _context = context; 
         }
@@ -22,15 +23,11 @@ namespace Infrastructure.Repositories
             .FirstOrDefaultAsync(d => d.PatientId == patientId);
         }
 
-        public async Task UpdateDrawerStatusAsync(int drawerId, bool isOpen)
+        public async Task UpdateDrawerStatusAsync(int drawerId,DrawerStatus status)
         {
-            var drawer = await _context.MedicineDrawers.FindAsync(drawerId);
-            if(drawer !=null)
-            {
-                drawer.IsOpened = isOpen;
-                _context.Update(drawer);
-                await _context.SaveChangesAsync();
-            }
+            var drawer = new MedicineDrawer { Id = drawerId, DrawerStatus = DrawerStatus.Open };
+            _context.Entry(drawer).Property(x => x.DrawerStatus).IsModified = true;
+            await _context.SaveChangesAsync();
         }
         public async Task<IEnumerable<MedicineDrawer>> GetAllDrawersWithPatientsAsync()
         {

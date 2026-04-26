@@ -4,8 +4,9 @@ using Core.Entities;
 
 namespace Core.Interfaces
 {
-    public interface IMedicalRecordRepository : IGenericRepository<MedicalRecord>
+    public interface IMedicalRecordRepository 
     {
+        Task AddAsyn(MedicalRecord record);
         Task<IEnumerable<MedicalRecord>> GetRecentRecordsByPatientIdAsync(int patientId, int count);
     }
 }
