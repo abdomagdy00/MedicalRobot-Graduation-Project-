@@ -1,4 +1,5 @@
 using Api.Middlewares;
+using Application.Hubs;
 using Application.Interfaces;
 using Application.Services;
 using Application.Validators;
@@ -65,6 +66,7 @@ namespace Api
             // app.UseHttpsRedirection(); 
 
             app.UseAuthorization();
+            app.MapHub<RobotHub>("/robot-hub");
             app.MapControllers();
 
             app.Run();

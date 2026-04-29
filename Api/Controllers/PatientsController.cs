@@ -32,8 +32,16 @@ namespace Api.Controllers
         public async Task<IActionResult> AddVitals([FromBody] VitalsUploadDto vitalsDto)
         {
             await _patientService.AddPatientVitalsAsync(vitalsDto);
-            return Ok(new { message = "Vital signs were successfully recorded" });
+
+            var patient = await _patientService.GetPatientByFaceIdAsync(vitalsDto.FaceId);
+            var vitalsResponse = new VitalsResponseDto
+            {
+                HeartRate = vitalsDto.HeartRate,
+                Temperature = vitalsDto.Temperature,
+                SpO2 = vitalsDto.SpO2
+            };
+            await _patientService.StreamVitalsToClients(vitalsResponse, patient.FullName);
+            return Ok(new { message = "Vitals recorded and streamed successfully." });
         }
-l
     }
 }

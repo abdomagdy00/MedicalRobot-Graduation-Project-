@@ -15,7 +15,7 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task AddAsyn(MedicalRecord record)
+        public async Task AddAsync(MedicalRecord record)
         {
             await _context.MedicalRecords.AddAsync(record);
             await _context.SaveChangesAsync();

@@ -10,5 +10,6 @@ namespace Application.Interfaces
         Task<PatientDto> GetPatientByFaceIdAsync(int faceId);
         Task<IEnumerable<PatientDto>> GetAllPatientsAsync();
         Task<bool> AddPatientVitalsAsync(VitalsUploadDto vitalsDto);
+        Task StreamVitalsToClients(VitalsResponseDto vitals, string patientName);
     }
 }

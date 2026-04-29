@@ -27,12 +27,13 @@ namespace Api.Controllers
             await _drawerService.ToggleDrawerAsync(id, status);
             return Ok(new { message = $"The Drawer status has been changed to{status}" });
         }
+
         [HttpPost("open-by-face/{faceId}")]
         public async Task<IActionResult> OpenByFace(int faceId)
         {
             var commandChar = await _drawerService.OpenDrawerByFaceIdAsync(faceId);
             // Note: Here we return the character that should be sent to the robot (e.g.,'A')
-            return Ok(new { command = commandChar });
+            return Ok(new { command = commandChar, message = "Drawer open command sent to robot." });
         }
     }
 }

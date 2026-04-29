@@ -1,10 +1,13 @@
 ﻿
 using Application.DTOs;
+using Application.Hubs;
 using Application.Interfaces;
 using Application.Mappings;
 using Core.Enums;
 using Core.Exceptions;
 using Core.Interfaces;
+using Core.Interfaces.SignalRInterfaces;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Application.Services
 {
@@ -12,13 +15,16 @@ namespace Application.Services
     {
         private readonly IMedicineDrawerRepository _drawerRepository;
         private readonly IPatientRepository _patientRepository;
+        private readonly IHubContext<RobotHub, IRobotClient> _hubContext;
 
         public MedicineDrawerService(
             IMedicineDrawerRepository drawerRepository,
-            IPatientRepository patientRepository)
+            IPatientRepository patientRepository,
+            IHubContext<RobotHub, IRobotClient> hubContext)
         {
             _drawerRepository = drawerRepository;
             _patientRepository = patientRepository;
+            _hubContext = hubContext;
         }
         public async Task<IEnumerable<MedicineDrawerDto>> GetAllDrawersStatusAsync()
         {
@@ -33,8 +39,13 @@ namespace Application.Services
                 throw new NotFoundException("The patient is not present.");
             if (patient.AssignedDrawer == null)
                 throw new Exception("This patient does not have a designated drawer.");
-
+            
+            // Update drawer status to open in the database
             await _drawerRepository.UpdateDrawerStatusAsync(patient.AssignedDrawer.Id,DrawerStatus.Open);
+
+            //SignalR notification to robot to open the drawer
+            await _hubContext.Clients.All.DrawerCommand(patient.AssignedDrawer.CommandChar);
+            
             return patient.AssignedDrawer.CommandChar;
         }
 
