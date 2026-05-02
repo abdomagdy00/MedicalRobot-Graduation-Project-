@@ -31,6 +31,7 @@ namespace Api
             builder.Services.AddScoped<IPatientRepository, PatientRepository>();
             builder.Services.AddScoped<IMedicineDrawerRepository, MedicineDrawerRepository>();
             builder.Services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
+            builder.Services.AddScoped<IRobotSettingRepository, RobotSettingRepository>();
 
             // 4. Application 
             builder.Services.AddValidatorsFromAssembly(typeof(PatientDtoValidator).Assembly);
@@ -39,6 +40,7 @@ namespace Api
             builder.Services.AddScoped<IPatientService, PatientService>();
             builder.Services.AddScoped<IMedicineDrawerService, MedicineDrawerService>();
             builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
+            builder.Services.AddScoped<IRobotService, RobotService>();
 
             // 5.  CORS Policy
             builder.Services.AddCors(options =>

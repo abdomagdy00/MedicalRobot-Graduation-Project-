@@ -10,6 +10,7 @@ namespace Infrastructure.Data
         public DbSet<Patient> Patients { get; set; }
         public DbSet<MedicalRecord> MedicalRecords { get; set; }
         public DbSet<MedicineDrawer> MedicineDrawers { get; set; }
+        public DbSet<RobotSetting> RobotSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
