@@ -1,10 +1,10 @@
 ﻿using Application.DTOs;
 using Application.Hubs;
 using Application.Interfaces;
+using Application.Interfaces.SignalRInterfaces;
 using Application.Mappings;
 using Core.Exceptions;
 using Core.Interfaces;
-using Core.Interfaces.SignalRInterfaces;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Application.Services

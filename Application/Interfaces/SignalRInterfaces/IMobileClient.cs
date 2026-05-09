@@ -1,6 +1,6 @@
 ﻿using Application.DTOs;
 
-namespace Core.Interfaces.SignalRInterfaces
+namespace Application.Interfaces.SignalRInterfaces
 {
     public interface IMobileClient
     {

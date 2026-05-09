@@ -2,11 +2,11 @@
 using Application.DTOs;
 using Application.Hubs;
 using Application.Interfaces;
+using Application.Interfaces.SignalRInterfaces;
 using Application.Mappings;
 using Core.Enums;
 using Core.Exceptions;
 using Core.Interfaces;
-using Core.Interfaces.SignalRInterfaces;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Application.Services
@@ -52,6 +52,8 @@ namespace Application.Services
         public async Task<bool> ToggleDrawerAsync(int drawerId, DrawerStatus status)
         {
             await _drawerRepository.UpdateDrawerStatusAsync(drawerId, status);
+            string command = (status == DrawerStatus.Open ? "O" : "C") + drawerId.ToString();
+            await _hubContext.Clients.All.DrawerCommand(command);
             return true;
         }
     }

@@ -1,5 +1,4 @@
-﻿
-namespace Core.Interfaces.SignalRInterfaces
+﻿namespace Application.Interfaces.SignalRInterfaces
 {
     public interface IRobotClient
     {

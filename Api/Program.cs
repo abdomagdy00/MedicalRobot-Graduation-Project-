@@ -8,6 +8,7 @@ using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 namespace Api
 {
@@ -20,7 +21,35 @@ namespace Api
             // 1. Basics
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Medical Robot API", Version = "v1" });
+
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter the token here like this: Bearer {your_token}"
+                });
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
+            });
 
             // 2. Database
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -32,6 +61,8 @@ namespace Api
             builder.Services.AddScoped<IMedicineDrawerRepository, MedicineDrawerRepository>();
             builder.Services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
             builder.Services.AddScoped<IRobotSettingRepository, RobotSettingRepository>();
+            builder.Services.AddIdentityServices(builder.Configuration);
+
 
             // 4. Application 
             builder.Services.AddValidatorsFromAssembly(typeof(PatientDtoValidator).Assembly);
@@ -41,6 +72,7 @@ namespace Api
             builder.Services.AddScoped<IMedicineDrawerService, MedicineDrawerService>();
             builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
             builder.Services.AddScoped<IRobotService, RobotService>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
 
             // 5.  CORS Policy
             builder.Services.AddCors(options =>
@@ -67,9 +99,11 @@ namespace Api
 
             // app.UseHttpsRedirection(); 
 
+            app.UseAuthentication();
             app.UseAuthorization();
-            app.MapHub<RobotHub>("/robot-hub");
+
             app.MapControllers();
+            app.MapHub<RobotHub>("/robot-hub").RequireAuthorization();
 
             app.Run();
         }

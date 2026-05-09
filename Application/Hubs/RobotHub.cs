@@ -1,8 +1,10 @@
-﻿using Core.Interfaces.SignalRInterfaces;
+﻿using Application.Interfaces.SignalRInterfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Application.Hubs
 {
+    [Authorize]
     public class RobotHub : Hub<IRobotClient>
     {
         public override async Task OnConnectedAsync()
