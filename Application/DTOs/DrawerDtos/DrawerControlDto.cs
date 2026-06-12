@@ -1,5 +1,5 @@
 ﻿using Core.Enums;
-namespace Application.DTOs
+namespace Application.DTOs.DrawerDtos
 {
     //For drawer opening/closing commands from mobile
     public class DrawerControlDto

@@ -1,5 +1,5 @@
 ﻿using Core.Enums;
-namespace Application.DTOs
+namespace Application.DTOs.Patient
 {
     public class PatientDto
     {

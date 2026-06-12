@@ -7,6 +7,7 @@ namespace Core.Interfaces
     {
         Task<MedicineDrawer> GetDrawerByPatientIdAsync(int patientId);
         Task UpdateDrawerStatusAsync(int drawerId,DrawerStatus status);
+        Task UpdateDrawerByNumberAsync(int drawerNumber, DrawerStatus status, bool isOpened);
         Task<IEnumerable<MedicineDrawer>> GetAllDrawersWithPatientsAsync();
     }
 }

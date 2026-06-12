@@ -1,6 +1,7 @@
 ﻿
 
 using Application.DTOs;
+using Application.DTOs.Patient;
 using Core.Entities;
 
 namespace Application.Mappings

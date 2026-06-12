@@ -1,13 +1,9 @@
-﻿
-using Application.DTOs;
-using Application.Hubs;
+﻿using Application.DTOs;
 using Application.Interfaces;
-using Application.Interfaces.SignalRInterfaces;
 using Application.Mappings;
 using Core.Enums;
 using Core.Exceptions;
 using Core.Interfaces;
-using Microsoft.AspNetCore.SignalR;
 
 namespace Application.Services
 {
@@ -15,17 +11,15 @@ namespace Application.Services
     {
         private readonly IMedicineDrawerRepository _drawerRepository;
         private readonly IPatientRepository _patientRepository;
-        private readonly IHubContext<RobotHub, IRobotClient> _hubContext;
 
         public MedicineDrawerService(
             IMedicineDrawerRepository drawerRepository,
-            IPatientRepository patientRepository,
-            IHubContext<RobotHub, IRobotClient> hubContext)
+            IPatientRepository patientRepository)
         {
             _drawerRepository = drawerRepository;
             _patientRepository = patientRepository;
-            _hubContext = hubContext;
         }
+
         public async Task<IEnumerable<MedicineDrawerDto>> GetAllDrawersStatusAsync()
         {
             var drawers = await _drawerRepository.GetAllDrawersWithPatientsAsync();
@@ -37,24 +31,25 @@ namespace Application.Services
             var patient = await _patientRepository.GetByFaceIdAsync(faceId);
             if (patient == null)
                 throw new NotFoundException("The patient is not present.");
+
             if (patient.AssignedDrawer == null)
                 throw new Exception("This patient does not have a designated drawer.");
-            
-            // Update drawer status to open in the database
-            await _drawerRepository.UpdateDrawerStatusAsync(patient.AssignedDrawer.Id,DrawerStatus.Open);
 
-            //SignalR notification to robot to open the drawer
-            await _hubContext.Clients.All.DrawerCommand(patient.AssignedDrawer.CommandChar);
-            
+            await _drawerRepository.UpdateDrawerStatusAsync(patient.AssignedDrawer.Id, DrawerStatus.Open);
+
             return patient.AssignedDrawer.CommandChar;
         }
 
         public async Task<bool> ToggleDrawerAsync(int drawerId, DrawerStatus status)
         {
             await _drawerRepository.UpdateDrawerStatusAsync(drawerId, status);
-            string command = (status == DrawerStatus.Open ? "O" : "C") + drawerId.ToString();
-            await _hubContext.Clients.All.DrawerCommand(command);
             return true;
+        }
+
+        public async Task UpdateDrawerPhysicalStateAsync(int drawerNumber, bool isOpened)
+        {
+            var status = isOpened ? DrawerStatus.Open : DrawerStatus.Closed;
+            await _drawerRepository.UpdateDrawerByNumberAsync(drawerNumber, status, isOpened);
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿
 
 using Application.DTOs;
-using System.Threading.Tasks;
+using Application.DTOs.Patient;
 
 namespace Application.Interfaces
 {
@@ -9,7 +9,8 @@ namespace Application.Interfaces
     {
         Task<PatientDto> GetPatientByFaceIdAsync(int faceId);
         Task<IEnumerable<PatientDto>> GetAllPatientsAsync();
-        Task<bool> AddPatientVitalsAsync(VitalsUploadDto vitalsDto);
-        Task StreamVitalsToClients(VitalsResponseDto vitals, string patientName);
+        Task<string> AddPatientVitalsAsync(VitalsUploadDto vitalsDto);
+        Task<PatientDto> CreatePatientWithFaceIdAsync(EnrollPatientDto dto, int faceId);
+        Task<bool> DeletePatientByFaceIdAsync(int faceId);
     }
 }

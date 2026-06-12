@@ -11,5 +11,6 @@ namespace Application.Interfaces
         Task<bool> ToggleDrawerAsync(int drawerId, DrawerStatus status);
         // Get the status of all drawers 
         Task<IEnumerable<MedicineDrawerDto>> GetAllDrawersStatusAsync();
+        Task UpdateDrawerPhysicalStateAsync(int drawerNumber, bool isOpened);
     }
 }

@@ -14,6 +14,8 @@ namespace Application.Services
         }
         public async Task UpdateCameraIpAsync(string ip)
         {
+            string cleanIp = ip.Replace("http://", "").Replace("https://", "").Trim();
+
             var setting = await _settingRepository.GetByKeyAsync("CameraIp");
 
             if (setting == null)
@@ -21,13 +23,13 @@ namespace Application.Services
                 await _settingRepository.AddAsync(new RobotSetting
                 {
                     Key = "CameraIp",
-                    Value = ip,
+                    Value = cleanIp, 
                     LastUpdated = DateTime.Now
                 });
             }
             else
             {
-                setting.Value = ip;
+                setting.Value = cleanIp; 
                 setting.LastUpdated = DateTime.Now;
                 await _settingRepository.UpdateAsync(setting);
             }

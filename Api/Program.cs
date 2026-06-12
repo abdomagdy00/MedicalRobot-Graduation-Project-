@@ -4,6 +4,7 @@ using Application.Interfaces;
 using Application.Services;
 using Application.Validators;
 using Core.Interfaces;
+using Core.Services;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
@@ -67,12 +68,16 @@ namespace Api
             // 4. Application 
             builder.Services.AddValidatorsFromAssembly(typeof(PatientDtoValidator).Assembly);
             builder.Services.AddSignalR();
+            builder.Services.AddSingleton<RobotConnectionTracker>();
 
             builder.Services.AddScoped<IPatientService, PatientService>();
             builder.Services.AddScoped<IMedicineDrawerService, MedicineDrawerService>();
             builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
             builder.Services.AddScoped<IRobotService, RobotService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+
+            //5.API
+            builder.Services.AddSingleton<FaceEnrollmentSessionManager>();
 
             // 5.  CORS Policy
             builder.Services.AddCors(options =>
@@ -101,9 +106,10 @@ namespace Api
 
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseWebSockets();
             app.MapControllers();
-            app.MapHub<RobotHub>("/robot-hub").RequireAuthorization();
+            //app.MapHub<RobotHub>("/robot-hub").RequireAuthorization();
+            app.MapHub<RobotHub>("/robot-hub");
 
             app.Run();
         }

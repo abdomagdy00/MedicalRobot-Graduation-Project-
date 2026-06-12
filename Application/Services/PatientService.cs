@@ -1,11 +1,10 @@
 ﻿using Application.DTOs;
-using Application.Hubs;
+using Application.DTOs.Patient;
 using Application.Interfaces;
-using Application.Interfaces.SignalRInterfaces;
 using Application.Mappings;
+using Core.Entities;
 using Core.Exceptions;
 using Core.Interfaces;
-using Microsoft.AspNetCore.SignalR;
 
 namespace Application.Services
 {
@@ -13,30 +12,25 @@ namespace Application.Services
     {
         private readonly IPatientRepository _patientRepository;
         private readonly IMedicalRecordRepository _recordRepository;
-        private readonly IHubContext<RobotHub, IRobotClient> _hubContext;
 
         public PatientService(
             IPatientRepository patientRepository,
-            IMedicalRecordRepository recordRepository,
-            IHubContext<RobotHub, IRobotClient> hubContext)
+            IMedicalRecordRepository recordRepository)
         {
             _patientRepository = patientRepository;
             _recordRepository = recordRepository;
-            _hubContext = hubContext;
         }
 
-       
-
-        public async Task<bool> AddPatientVitalsAsync(VitalsUploadDto vitalsDto)
+        public async Task<string> AddPatientVitalsAsync(VitalsUploadDto vitalsDto)
         {
             var patient = await _patientRepository.GetByFaceIdAsync(vitalsDto.FaceId);
             if (patient == null)
                 throw new NotFoundException($"Vitual readings could not be recorded: No patient registered with FaceId: {vitalsDto.FaceId}");
 
             var record = vitalsDto.MapToEntity(patient.Id);
-
             await _recordRepository.AddAsync(record);
-            return true;
+
+            return patient.FullName;
         }
 
         public async Task<IEnumerable<PatientDto>> GetAllPatientsAsync()
@@ -53,11 +47,32 @@ namespace Application.Services
             return patient.MapToDto();
         }
 
-        public async Task StreamVitalsToClients(VitalsResponseDto vitals, string patientName)
+        public async Task<PatientDto> CreatePatientWithFaceIdAsync(EnrollPatientDto dto, int faceId)
         {
-            await _hubContext.Clients.All
-                .ReceiveNotification($"Live medical update - Patient: {patientName}" +
-                $" | Heart Rate: {vitals.HeartRate} | blood oxygen level {vitals.SpO2} | Temperature: {vitals.Temperature}");
+            var newPatient = new Patient
+            {
+                FullName = dto.FullName,
+                Age = dto.Age,
+                Gender = dto.Gender,
+                FaceId = faceId // ربط الـ ID القادم من الهاردوير
+            };
+
+            var savedPatient = await _patientRepository.CreateAsync(newPatient);
+            return savedPatient.MapToDto(); // حوله لـ Dto ورجعه
+        }
+        public async Task<bool> DeletePatientByFaceIdAsync(int faceId)
+        {
+            // بنستخدم دالتك القديمة عشان نجيب المريض
+            var patient = await _patientRepository.GetByFaceIdAsync(faceId);
+
+            if (patient == null)
+            {
+                return false; // المريض مش موجود
+            }
+
+            // لو موجود، نمسحه
+            await _patientRepository.DeleteAsync(patient);
+            return true;
         }
     }
 }

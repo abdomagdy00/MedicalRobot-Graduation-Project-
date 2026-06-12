@@ -9,5 +9,9 @@
 
         // To send a notification to the robot 
         Task ReceiveNotification(string message);
+        // To send a learn command to the robot camera
+        Task ReceiveLearnCommand(string command);
+        //Control sensor readings
+        Task ReceiveSensorCommand(string command);
     }
 }

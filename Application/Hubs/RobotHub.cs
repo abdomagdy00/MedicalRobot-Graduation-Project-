@@ -1,18 +1,35 @@
 ﻿using Application.Interfaces.SignalRInterfaces;
+using Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Application.Hubs
 {
-    [Authorize]
+    //[Authorize]
+    [AllowAnonymous]
     public class RobotHub : Hub<IRobotClient>
     {
+        private readonly RobotConnectionTracker _tracker;
+
+        public RobotHub(RobotConnectionTracker tracker)
+        {
+            _tracker = tracker;
+        }
         public override async Task OnConnectedAsync()
         {
             var connectionId = Context.ConnectionId;
             Console.WriteLine($"Client connected: {connectionId}");
+
+            var deviceType = Context.GetHttpContext()?.Request.Query["deviceType"].ToString();
+            if (deviceType == "robot")
+            {
+                _tracker.IsRobotConnected = true;
+                Console.WriteLine("🤖 Medical Robot is now ONLINE!"); 
+            }
+
             await Clients.Client(connectionId)
                 .ReceiveNotification("The medical robot server was successfully connected.");
+
             await base.OnConnectedAsync();
         }
 
@@ -20,6 +37,14 @@ namespace Application.Hubs
         {
             var connectionId = Context.ConnectionId;
             Console.WriteLine($"Client disconnected: {connectionId}");
+
+            var deviceType = Context.GetHttpContext()?.Request.Query["deviceType"].ToString();
+            if (deviceType == "robot")
+            {
+                _tracker.IsRobotConnected = false;
+                Console.WriteLine("⚠️ Medical Robot is OFFLINE!"); 
+            }
+
             await base.OnDisconnectedAsync(exception);
         }
 

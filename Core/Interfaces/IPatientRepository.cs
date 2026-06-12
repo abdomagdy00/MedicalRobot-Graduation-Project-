@@ -10,5 +10,7 @@ namespace Core.Interfaces
         Task<IEnumerable<Patient>> GetAllAsync();
         Task AddAsync(Patient patient);
         Task UpdateAsync(Patient patient);
+        Task<Patient> CreateAsync(Patient patient);
+        Task DeleteAsync(Patient patient);
     }
 }

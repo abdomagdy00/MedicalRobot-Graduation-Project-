@@ -44,5 +44,16 @@ namespace Infrastructure.Repositories
             _context.Patients.Update(patient);
             await _context.SaveChangesAsync();
         }
+        public async Task<Patient> CreateAsync(Patient patient)
+        {
+            await _context.Patients.AddAsync(patient);
+            await _context.SaveChangesAsync();
+            return patient; 
+        }
+        public async Task DeleteAsync(Patient patient)
+        {
+            _context.Patients.Remove(patient);
+            await _context.SaveChangesAsync();
+        }
     }
 }
