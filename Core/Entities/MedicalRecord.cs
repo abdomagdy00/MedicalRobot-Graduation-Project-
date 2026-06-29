@@ -7,6 +7,8 @@ namespace Core.Entities
         public float Temperature { get; set; }
         public int HeartRate { get; set; }
         public int SpO2 { get; set; }
+        public float RoomTemperature { get; set; }
+        public float RoomHumidity { get; set; }
         public DateTime CapturedAt { get; set; } = DateTime.Now;
 
         public int PatientId { get; set; }

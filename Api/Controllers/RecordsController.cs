@@ -1,8 +1,12 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
 using Application.Hubs;
+using Application.Interfaces.SignalRInterfaces;
+using Core.Services; 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using System;
+using System.Threading.Tasks;
 
 namespace Api.Controllers
 {
@@ -12,16 +16,19 @@ namespace Api.Controllers
     {
         private readonly IMedicalRecordService _recordService;
         private readonly IPatientService _patientService;
-        private readonly IHubContext<RobotHub> _hubContext;
+        private readonly IHubContext<RobotHub, IRobotClient> _hubContext;
+        private readonly RobotConnectionTracker _tracker;
 
         public RecordsController(
             IMedicalRecordService recordService,
-            IPatientService patientService, 
-            IHubContext<RobotHub> hubContext)
+            IPatientService patientService,
+            IHubContext<RobotHub, IRobotClient> hubContext,
+            RobotConnectionTracker tracker) 
         {
             _recordService = recordService;
             _patientService = patientService;
             _hubContext = hubContext;
+            _tracker = tracker; 
         }
 
         [HttpGet("patient/{patientId}")]
@@ -37,21 +44,31 @@ namespace Api.Controllers
             if (dto == null)
                 return BadRequest("Invalid record data.");
 
-            string patientName = await _patientService.AddPatientVitalsAsync(dto);
-
-            string notificationMessage = $"Live medical update - Patient: {patientName} | Heart Rate: {dto.HeartRate} | blood oxygen level {dto.SpO2} | Temperature: {dto.Temperature}";
-            await _hubContext.Clients.All.SendAsync("ReceiveNotification", notificationMessage);
-
-            await _hubContext.Clients.All.SendAsync("ReceiveLiveVitals", new
+            if (!_tracker.IsSensorReadingActive)
             {
-                patientName = patientName,
-                temperature = dto.Temperature,
-                heartRate = dto.HeartRate,
-                spO2 = dto.SpO2,
-                capturedAt = DateTime.Now
-            });
+                Console.WriteLine($"[Warning] Received vitals (FaceId:{dto.FaceId}) but readings are DEACTIVATED by Mobile. Data ignored.");
+                return Ok(new { message = "Data ignored. Vitals reading is currently stopped by the mobile application." });
+            }
 
-            return Ok(new { message = "Vitals received and broadcasted successfully." });
+            // 1. Saving to the database using FaceId and DHT22 via the Service
+            string patientName = await _patientService.AddPatientVitalsAsync(dto);
+            // 2. Live streaming of the mobile application (Strongly-Typed)
+            var responseDto = new VitalsResponseDto
+            {
+                Temperature = dto.Temperature,
+                HeartRate = dto.HeartRate,
+                SpO2 = dto.SpO2,
+                RoomTemperature = dto.RoomTemperature,
+                RoomHumidity = dto.RoomHumidity,
+                CapturedAt = DateTime.Now 
+            };
+
+            await _hubContext.Clients.All.ReceiveVitalsUpdated(responseDto);
+
+            string notificationMessage = $"Live update - Patient: {patientName}";
+            await _hubContext.Clients.All.ReceiveNotification(notificationMessage);
+
+            return Ok(new { message = "Vitals received, saved, and broadcasted successfully." });
         }
     }
 }

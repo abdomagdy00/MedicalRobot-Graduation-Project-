@@ -54,23 +54,22 @@ namespace Application.Services
                 FullName = dto.FullName,
                 Age = dto.Age,
                 Gender = dto.Gender,
-                FaceId = faceId // ربط الـ ID القادم من الهاردوير
+                FaceId = faceId  // Linking the ID coming from the hardware
             };
 
             var savedPatient = await _patientRepository.CreateAsync(newPatient);
-            return savedPatient.MapToDto(); // حوله لـ Dto ورجعه
+            return savedPatient.MapToDto(); // Convert to Dto and return
         }
         public async Task<bool> DeletePatientByFaceIdAsync(int faceId)
         {
-            // بنستخدم دالتك القديمة عشان نجيب المريض
             var patient = await _patientRepository.GetByFaceIdAsync(faceId);
 
             if (patient == null)
             {
-                return false; // المريض مش موجود
+                return false; // The patient does not exist
             }
 
-            // لو موجود، نمسحه
+            // If exists, delete it
             await _patientRepository.DeleteAsync(patient);
             return true;
         }

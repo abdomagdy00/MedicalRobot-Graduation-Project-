@@ -21,7 +21,7 @@ namespace Infrastructure.Repositories
                 .FirstOrDefaultAsync(d => d.PatientId == patientId);
         }
 
-        // تحديث من خلال الـ ID (جاي من الموبايل أب)
+        // Update via ID (coming from the mobile app)
         public async Task UpdateDrawerStatusAsync(int drawerId, DrawerStatus status)
         {
             var drawer = new MedicineDrawer
@@ -37,7 +37,7 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        // تحديث من خلال رقم الدرج الفيزيائي (جاي من السويتشات بتاعة الـ ESP32)
+        // Update via physical drawer number (coming from the ESP32 switches)
         public async Task UpdateDrawerByNumberAsync(int drawerNumber, DrawerStatus status, bool isOpened)
         {
             var drawer = await _context.MedicineDrawers

@@ -31,7 +31,6 @@ namespace Api.Controllers
             }
             string cleanDirection = direction.ToUpper().Trim();
 
-            // عاجل: حفظ الاتجاه الجديد في الـ Tracker قبل إرساله
             _tracker.LastDirection = cleanDirection;
             await _hubContext.Clients.All.ReceiveMovementCommand(direction);
             return Ok(new { message = $"Direction {direction} sent to robot." });
@@ -40,7 +39,6 @@ namespace Api.Controllers
         [HttpGet("status")]
         public IActionResult GetRobotStatus()
         {
-            // بنرجع آخر اتجاه متخزن جوه الـ Tracker الـ Singleton
             return Ok(new { direction = _tracker.LastDirection });
         }
 

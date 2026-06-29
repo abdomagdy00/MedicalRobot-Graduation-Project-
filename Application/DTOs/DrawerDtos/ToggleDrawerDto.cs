@@ -8,6 +8,6 @@ namespace Application.DTOs.DrawerDtos
 {
     public class ToggleDrawerDto
     {
-        public bool Open { get; set; } // true = فتح، false = قفل
+        public bool Open { get; set; } // true = Open، false = Close
     }
 }

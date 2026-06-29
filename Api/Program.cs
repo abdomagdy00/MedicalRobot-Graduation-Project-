@@ -103,10 +103,10 @@ namespace Api
             app.UseCors("RobotPolicy");
 
             // app.UseHttpsRedirection(); 
+            app.UseWebSockets();
 
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseWebSockets();
             app.MapControllers();
             //app.MapHub<RobotHub>("/robot-hub").RequireAuthorization();
             app.MapHub<RobotHub>("/robot-hub");

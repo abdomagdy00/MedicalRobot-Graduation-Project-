@@ -9,5 +9,7 @@ namespace Application.DTOs
         public float Temperature { get; set; }
         public int HeartRate { get; set; }
         public int SpO2 { get; set; }
+        public float RoomTemperature { get; set; }
+        public float RoomHumidity { get; set; }
     }
 }

@@ -9,7 +9,6 @@ namespace Application.DTOs
         public int Id { get; set; }
         public int DrawerNumber { get; set; }
         public DrawerStatus DrawerStatus { get; set; }
-        //public bool IsOpened { get; set; }
         public string PatientName { get; set; } = null!;
     }
 }

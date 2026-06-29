@@ -1,4 +1,6 @@
-﻿namespace Application.Interfaces.SignalRInterfaces
+﻿using Application.DTOs;
+
+namespace Application.Interfaces.SignalRInterfaces
 {
     public interface IRobotClient
     {
@@ -13,5 +15,7 @@
         Task ReceiveLearnCommand(string command);
         //Control sensor readings
         Task ReceiveSensorCommand(string command);
+        //دي الميثود الجديدة اللي هتبعت الداتا للموبايل
+        Task ReceiveVitalsUpdated(VitalsResponseDto vitals);
     }
 }

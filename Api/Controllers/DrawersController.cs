@@ -47,7 +47,6 @@ namespace Api.Controllers
             var status = dto.Open ? DrawerStatus.Open : DrawerStatus.Closed;
             await _drawerService.ToggleDrawerAsync(id, status);
 
-            // إرسال الأمر الصريح للـ ESP32 بناءً على طلب الموبايل
             string command = dto.Open ? $"O{id}" : $"C{id}";
             await _hubContext.Clients.All.DrawerCommand(command);
 
@@ -57,10 +56,10 @@ namespace Api.Controllers
         [HttpPost("report-switch-state")]
         public async Task<IActionResult> ReportSwitchState([FromBody] HardwareSwitchReportDto dto)
         {
-            // مزامنة الداتا بيز مع الحالة المادية الحقيقية للدرج
+            // Synchronize the database with the actual physical state of the drawer
             await _drawerService.UpdateDrawerPhysicalStateAsync(dto.DrawerNumber, dto.IsOpened);
 
-            // إرسال إشعار فوري للموبايل لتحديث الواجهة أمام الدكتور تلقائياً
+            // Send an immediate notification to the mobile to update the interface in front of the doctor automatically
             string state = dto.IsOpened ? "Open" : "Closed";
             await _hubContext.Clients.All.ReceiveNotification($"Drawer number {dto.DrawerNumber} is now actually {state}.");
 

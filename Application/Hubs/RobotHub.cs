@@ -1,4 +1,7 @@
-﻿using Application.Interfaces.SignalRInterfaces;
+﻿using Application.DTOs;
+using Application.Interfaces.SignalRInterfaces;
+using Core.Entities;
+using Core.Interfaces;
 using Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -10,10 +13,17 @@ namespace Application.Hubs
     public class RobotHub : Hub<IRobotClient>
     {
         private readonly RobotConnectionTracker _tracker;
+        private readonly IPatientRepository _patientRepository;
+        private readonly IMedicalRecordRepository _medicalRecordRepository; 
 
-        public RobotHub(RobotConnectionTracker tracker)
+        public RobotHub(
+            RobotConnectionTracker tracker,
+            IPatientRepository patientRepository,
+            IMedicalRecordRepository medicalRecordRepository)
         {
             _tracker = tracker;
+            _patientRepository = patientRepository;
+            _medicalRecordRepository = medicalRecordRepository;
         }
         public override async Task OnConnectedAsync()
         {
@@ -55,5 +65,51 @@ namespace Application.Hubs
             await Clients.Others.ReceiveMovementCommand(direction);
             Console.WriteLine($"Movement command sent: {direction}");
         }
+
+
+        // =========================================================
+        // Receive from ESP32 and send to mobile
+        // =========================================================
+        public async Task UploadVitals(VitalsUploadDto uploadDto)
+        {
+            // 1. Bring the patient with Face ID
+            var patient = await _patientRepository.GetByFaceIdAsync(uploadDto.FaceId);
+            if (patient == null)
+            {
+                Console.WriteLine($"[Warning] Unregistered FaceId: {uploadDto.FaceId}. Data ignored.");
+                return;
+            }
+
+            // 2. Prepare the record for saving 
+            var record = new MedicalRecord
+            {
+                PatientId = patient.Id,
+                Temperature = uploadDto.Temperature,
+                HeartRate = uploadDto.HeartRate,
+                SpO2 = uploadDto.SpO2,
+                RoomTemperature = uploadDto.RoomTemperature,
+                RoomHumidity = uploadDto.RoomHumidity,
+                CapturedAt = DateTime.Now
+            };
+
+            // 3. Save to the database
+            await _medicalRecordRepository.AddAsync(record);
+
+            // 4. Prepare the response for the mobile
+            var responseDto = new VitalsResponseDto
+            {
+                Temperature = record.Temperature,
+                HeartRate = record.HeartRate,
+                SpO2 = record.SpO2,
+                RoomTemperature = record.RoomTemperature,
+                RoomHumidity = record.RoomHumidity,
+                CapturedAt = record.CapturedAt
+            };
+
+            // 5. Send to the mobile
+            await Clients.Others.ReceiveVitalsUpdated(responseDto);
+            Console.WriteLine($"[Success] Vitals saved and broadcasted for Patient ID: {patient.Id}");
+        }
     }
 }
+

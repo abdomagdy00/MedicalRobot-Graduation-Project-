@@ -53,17 +53,17 @@ namespace Api.Controllers
 
             _enrollmentManager.StartSession();
 
-            // ابعت أمر الـ Learn للهاردوير
+            // Send the Learn command to the hardware
             await _hubContext.Clients.All.ReceiveLearnCommand("Learn");
 
             try
             {
-                // السيرفر هيستنى هنا 30 ثانية لحد ما الكاميرا تخلص وتجيب الـ ID
+                // The server will wait here for 30 seconds until the camera finishes and provides the ID
                 int assignedFaceId = await _enrollmentManager.WaitForFaceIdAsync(30);
 
                 var createdPatient = await _patientService.CreatePatientWithFaceIdAsync(dto, assignedFaceId);
 
-                return Ok(createdPatient); // رجع الداتا للموبايل
+                return Ok(createdPatient); // Return the data to the mobile app
             }
             catch (TimeoutException)
             {
@@ -71,7 +71,7 @@ namespace Api.Controllers
             }
         }
 
-        // Endpoint 2: الـ ESP32 بيبعت عليها الـ FaceID الجديد بعد ما يخلص
+        // Endpoint 2: The ESP32 sends the new Face ID to it after it finishes
         [HttpPost("confirm-face-learning")]
         public IActionResult ConfirmFaceLearning([FromBody] FaceLearningResultDto dto)
         {
@@ -83,18 +83,16 @@ namespace Api.Controllers
             return Ok(new { message = "Face ID registered successfully." });
         }
 
-        [HttpDelete("delete-by-face/{faceId}")]
+        [HttpDelete("delete/{faceId}")]
         public async Task<IActionResult> DeleteByFaceId(int faceId)
         {
             var isDeleted = await _patientService.DeletePatientByFaceIdAsync(faceId);
 
             if (!isDeleted)
             {
-                // الرد لو المريض مش موجود في الداتا بيز
                 return NotFound(new { message = $"No patient found with Face ID: {faceId}" });
             }
 
-            // الرد بالتأكيد لو تم المسح بنجاح
             return Ok(new { message = "The patient has been successfully deleted." });
         }
     }

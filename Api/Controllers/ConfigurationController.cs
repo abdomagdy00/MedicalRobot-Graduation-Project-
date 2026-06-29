@@ -15,7 +15,7 @@ namespace Api.Controllers
         {
             _robotService = robotService;
         }
-
+        //****** This endpoint is currently inactive.******
         //[HttpPost("register-camera-ip")]
         //public async Task<IActionResult> RegisterIp([FromBody] string ip)
         //{
